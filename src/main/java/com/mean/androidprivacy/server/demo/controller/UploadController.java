@@ -1,21 +1,26 @@
 package com.mean.androidprivacy.server.demo.controller;
 
-import com.mean.androidprivacy.server.demo.analysis.ApkAnalyzer;
-import org.springframework.beans.factory.annotation.Value;
+import com.mean.androidprivacy.server.demo.analysis.FlowDroidConfig;
+import com.mean.androidprivacy.server.demo.analysis.FlowDroidRuntime;
+import com.mean.androidprivacy.server.demo.util.Md5CalcUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.xmlpull.v1.XmlPullParserException;
-import soot.jimple.infoflow.results.InfoflowResults;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 
 /**
  * @ProjectName: AndroidPrivacyServer
@@ -27,46 +32,57 @@ import java.nio.file.Paths;
  **/
 @Controller
 @RequestMapping("/")
+@EnableConfigurationProperties(FlowDroidConfig.class)
 public class UploadController {
-    private static String UPLOADED_DIR_DEFAULT = "D://APS//upload//";
+    @Autowired
+    private FlowDroidConfig flowDroidConfig;
 
     @GetMapping("/")
     public String index() {
-        return "upload";
+        return null;
     }
+
     @PostMapping("/upload")
-    public String singleFileUpload(@RequestParam("file") MultipartFile file,
-                                   RedirectAttributes redirectAttributes) {
-        if (file.isEmpty()) {
-            redirectAttributes.addFlashAttribute("message", "请选择文件");
-            return "redirect:uploadStatus";
+    public ResponseEntity<FileSystemResource> singleFileUpload(@RequestParam("uploadApkFile") MultipartFile uploadApkFile) {
+        if (uploadApkFile.isEmpty()) {
+            return null;
         }
 
         try {
-            // Get the file and save it somewhere
-            Path path = Paths.get(UPLOADED_DIR_DEFAULT + file.getOriginalFilename());
-            FileCopyUtils.copy(file.getInputStream(),new FileOutputStream(path.toFile()));
-            redirectAttributes.addFlashAttribute("message",
-                                                 "成功上传文件 '" + file.getOriginalFilename() + "'");
-            //TODO 分析文件
-            try {
-                InfoflowResults results = ApkAnalyzer.proc(path.toString());
-                if(results!=null){
-                    redirectAttributes.addFlashAttribute("results",results.toString());
+            // 获取文件的Md5值
+            String Md5 = Md5CalcUtil.calcMD5(uploadApkFile.getInputStream());
+            Path apkPath = Paths.get(String.format("%s/%s.apk",flowDroidConfig.getApkFileDir(),Md5));
+            Path outputPath = Paths.get(String.format("%s/%s.xml",flowDroidConfig.getOutputFileDir(),Md5));
+            Path logPath = Paths.get(String.format("%s/%s.log",flowDroidConfig.getLogFileDir(),Md5));
+            if(!outputPath.toFile().exists()) {    //输出文件不存在才进行后续的分析
+                if(apkPath.toFile().exists()){     //apk文件不存在才写入磁盘
+                    FileCopyUtils.copy(uploadApkFile.getInputStream(), new FileOutputStream(apkPath.toFile()));
                 }
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
+                FlowDroidRuntime flowDroidRuntime = new FlowDroidRuntime();
+                flowDroidRuntime.setEnv(flowDroidConfig.getJavaCmd(),
+                                        flowDroidConfig.getFlowDroidCmdJarWorkDir(),
+                                        flowDroidConfig.getFlowDroidCmdJarFilePath(),
+                                        flowDroidConfig.getAndroidSdkPlatformsDir(),
+                                        flowDroidConfig.getSourcesAndSinksFilePath(),
+                                        outputPath.toString(),
+                                        logPath.toString());
+                flowDroidRuntime.exec(apkPath.toString());
             }
-
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+            headers.add("Content-Disposition", "attachment; filename=" + outputPath.getFileName());
+            headers.add("Pragma", "no-cache");
+            headers.add("Expires", "0");
+            headers.add("Last-Modified", new Date().toString());
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentLength(outputPath.toFile().length())
+                    .contentType(MediaType.parseMediaType("application/octet-stream"))
+                    .body(new FileSystemResource(outputPath));
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
-
-        return "redirect:/uploadStatus";
-    }
-
-    @GetMapping("/uploadStatus")
-    public String uploadStatus() {
-        return "uploadStatus";
     }
 }
