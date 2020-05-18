@@ -42,6 +42,31 @@ public class UploadController {
         return null;
     }
 
+    @GetMapping("/result")
+    public ResponseEntity<FileSystemResource> singleFileUpload(@RequestParam("apkMd5") String Md5) {
+        Path outputPath = Paths.get(String.format("%s/%s.xml", flowDroidConfig.getOutputFileDir(), Md5));
+        if (outputPath.toFile().exists()) {
+            return getFileSystemResourceResponseEntity(outputPath);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    private ResponseEntity<FileSystemResource> getFileSystemResourceResponseEntity(Path outputPath) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+        headers.add("Content-Disposition", "attachment; filename=" + outputPath.getFileName());
+        headers.add("Pragma", "no-cache");
+        headers.add("Expires", "0");
+        headers.add("Last-Modified", new Date().toString());
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentLength(outputPath.toFile().length())
+                .contentType(MediaType.parseMediaType("application/octet-stream"))
+                .body(new FileSystemResource(outputPath));
+    }
+
     @PostMapping("/upload")
     public ResponseEntity<FileSystemResource> singleFileUpload(@RequestParam("uploadApkFile") MultipartFile uploadApkFile) {
         if (uploadApkFile.isEmpty()) {
@@ -68,18 +93,7 @@ public class UploadController {
                                         logPath.toString());
                 flowDroidRuntime.exec(apkPath.toString());
             }
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
-            headers.add("Content-Disposition", "attachment; filename=" + outputPath.getFileName());
-            headers.add("Pragma", "no-cache");
-            headers.add("Expires", "0");
-            headers.add("Last-Modified", new Date().toString());
-            return ResponseEntity
-                    .ok()
-                    .headers(headers)
-                    .contentLength(outputPath.toFile().length())
-                    .contentType(MediaType.parseMediaType("application/octet-stream"))
-                    .body(new FileSystemResource(outputPath));
+            return getFileSystemResourceResponseEntity(outputPath);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
