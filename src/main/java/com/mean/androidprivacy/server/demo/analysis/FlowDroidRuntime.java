@@ -1,9 +1,6 @@
 package com.mean.androidprivacy.server.demo.analysis;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 
 /**
  * @ProjectName: AndroidPrivacyServer
@@ -46,13 +43,15 @@ public class FlowDroidRuntime {
             InputStream in = process.getInputStream();
             InputStreamReader reader = new InputStreamReader(in);
             BufferedReader br = new BufferedReader(reader);
-            StringBuffer sb = new StringBuffer();
-            String log;
-            while ((log = br.readLine()) != null) {
-                sb.append(log);
+            File file = new File(logFilePath);
+            file.mkdirs();
+            OutputStream out = new FileOutputStream(file);
+            OutputStreamWriter writer = new OutputStreamWriter(out);
+            BufferedWriter bw = new BufferedWriter(writer);
+            String logLine;
+            while ((logLine = br.readLine()) != null) {
+                bw.append(logLine);
             }
-            //TODO 写sb到log文件
-
             return true;
         } catch (IOException e) {
             e.printStackTrace();

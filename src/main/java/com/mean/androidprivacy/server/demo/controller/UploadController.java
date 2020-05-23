@@ -1,6 +1,7 @@
 package com.mean.androidprivacy.server.demo.controller;
 
 import com.mean.androidprivacy.server.demo.analysis.FlowDroidConfig;
+import com.mean.androidprivacy.server.demo.analysis.FlowDroidLauncher;
 import com.mean.androidprivacy.server.demo.analysis.FlowDroidRuntime;
 import com.mean.androidprivacy.server.demo.util.Md5CalcUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import soot.jimple.infoflow.results.DataFlowResult;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -72,30 +74,10 @@ public class UploadController {
         if (uploadApkFile.isEmpty()) {
             return null;
         }
-
-        try {
-            // 获取文件的Md5值
-            String Md5 = Md5CalcUtil.calcMD5(uploadApkFile.getInputStream());
-            Path apkPath = Paths.get(String.format("%s/%s.apk",flowDroidConfig.getApkFileDir(),Md5));
-            Path outputPath = Paths.get(String.format("%s/%s.xml",flowDroidConfig.getOutputFileDir(),Md5));
-            Path logPath = Paths.get(String.format("%s/%s.log",flowDroidConfig.getLogFileDir(),Md5));
-            if(!outputPath.toFile().exists()) {    //输出文件不存在才进行后续的分析
-                if(apkPath.toFile().exists()){     //apk文件不存在才写入磁盘
-                    FileCopyUtils.copy(uploadApkFile.getInputStream(), new FileOutputStream(apkPath.toFile()));
-                }
-                FlowDroidRuntime flowDroidRuntime = new FlowDroidRuntime();
-                flowDroidRuntime.setEnv(flowDroidConfig.getJavaCmd(),
-                                        flowDroidConfig.getFlowDroidCmdJarWorkDir(),
-                                        flowDroidConfig.getFlowDroidCmdJarFilePath(),
-                                        flowDroidConfig.getAndroidSdkPlatformsDir(),
-                                        flowDroidConfig.getSourcesAndSinksFilePath(),
-                                        outputPath.toString(),
-                                        logPath.toString());
-                flowDroidRuntime.exec(apkPath.toString());
-            }
+        Path outputPath = FlowDroidLauncher.launch(uploadApkFile);
+        if(outputPath!=null) {
             return getFileSystemResourceResponseEntity(outputPath);
-        } catch (IOException e) {
-            e.printStackTrace();
+        }else {
             return null;
         }
     }
