@@ -2,24 +2,18 @@ package com.mean.androidprivacy.server.demo.controller;
 
 import com.mean.androidprivacy.server.demo.analysis.FlowDroidConfig;
 import com.mean.androidprivacy.server.demo.analysis.FlowDroidLauncher;
-import com.mean.androidprivacy.server.demo.analysis.FlowDroidRuntime;
-import com.mean.androidprivacy.server.demo.util.Md5CalcUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import soot.jimple.infoflow.results.DataFlowResult;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
+
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
@@ -74,9 +68,9 @@ public class UploadController {
         if (uploadApkFile.isEmpty()) {
             return null;
         }
-        Path outputPath = FlowDroidLauncher.launch(uploadApkFile);
-        if(outputPath!=null) {
-            return getFileSystemResourceResponseEntity(outputPath);
+        File outputFile = new FlowDroidLauncher(flowDroidConfig).launch(uploadApkFile);
+        if(outputFile!=null && outputFile.exists()) {
+            return getFileSystemResourceResponseEntity(outputFile.toPath());
         }else {
             return null;
         }

@@ -39,21 +39,26 @@ public class FlowDroidRuntime {
                                       androidSdkPlatformsDir, sourcesAndSinksFilePath,outputFilePath);
         Runtime run = Runtime.getRuntime();
         try {
+
             Process process = run.exec(cmdStr);
-            InputStream in = process.getInputStream();
-            InputStreamReader reader = new InputStreamReader(in);
-            BufferedReader br = new BufferedReader(reader);
-            File file = new File(logFilePath);
-            file.mkdirs();
-            OutputStream out = new FileOutputStream(file);
-            OutputStreamWriter writer = new OutputStreamWriter(out);
-            BufferedWriter bw = new BufferedWriter(writer);
-            String logLine;
-            while ((logLine = br.readLine()) != null) {
-                bw.append(logLine);
+            File logFile = new File(logFilePath);
+            logFile.createNewFile();
+            File logErrorFile = new File(logFilePath+".error");
+            logErrorFile.createNewFile();
+            logFile.createNewFile();
+            logErrorFile.createNewFile();
+            Thread outputThread = new ProcessOutputThread(process.getInputStream(),new FileOutputStream(logFile));
+            Thread errorOutputThread = new ProcessOutputThread(process.getErrorStream(),new FileOutputStream(logErrorFile));
+            outputThread.start();
+            errorOutputThread.start();
+            process.waitFor();
+            outputThread.join();
+            errorOutputThread.join();
+            if (process != null) {
+                process.destroy();
             }
             return true;
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return false;
         }
