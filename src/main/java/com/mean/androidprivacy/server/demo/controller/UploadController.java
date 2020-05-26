@@ -40,10 +40,13 @@ public class UploadController {
 
     @GetMapping("/result")
     public ResponseEntity<FileSystemResource> singleFileUpload(@RequestParam("apkMd5") String Md5) {
-        Path outputPath = Paths.get(String.format("%s/%s.xml", flowDroidConfig.getOutputFileDir(), Md5));
-        if (outputPath.toFile().exists()) {
-            return getFileSystemResourceResponseEntity(outputPath);
+        File outputFile = new File(String.format("%s/%s.xml", flowDroidConfig.getOutputFileDir(), Md5));
+        if (outputFile.exists()) {
+            System.out.println("/result: "+outputFile.getAbsolutePath());
+            return getFileSystemResourceResponseEntity(outputFile.toPath());
+
         } else {
+            System.out.println("/result: [notfound]");
             return ResponseEntity.notFound().build();
         }
     }
@@ -66,12 +69,18 @@ public class UploadController {
     @PostMapping("/upload")
     public ResponseEntity<FileSystemResource> singleFileUpload(@RequestParam("uploadApkFile") MultipartFile uploadApkFile) {
         if (uploadApkFile.isEmpty()) {
+
+            System.out.println("/upload: [null]");
             return null;
         }
+        System.out.println("/upload: [start analyze apk]");
         File outputFile = new FlowDroidLauncher(flowDroidConfig).launch(uploadApkFile);
+        System.out.println("/upload: [finish analyze apk]");
         if(outputFile!=null && outputFile.exists()) {
+            System.out.println("/upload: "+outputFile.getAbsolutePath());
             return getFileSystemResourceResponseEntity(outputFile.toPath());
         }else {
+            System.out.println("/upload: [null]");
             return null;
         }
     }
