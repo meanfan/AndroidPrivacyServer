@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * @Version: 1.0
  **/
 @ConfigurationProperties(prefix = "flowdroid", ignoreInvalidFields = true)
-@PropertySource("classpath:flowdroid.properties")
+@PropertySource(value = "file:${flowdroid.properties.file}", ignoreResourceNotFound = false)
 @Data
 @Component
 public class FlowDroidConfig {
