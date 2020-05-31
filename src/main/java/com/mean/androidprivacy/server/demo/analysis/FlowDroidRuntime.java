@@ -5,7 +5,7 @@ import java.io.*;
 /**
  * @ProjectName: AndroidPrivacyServer
  * @ClassName: FlowDroidRuntime
- * @Description:
+ * @Description: 负责执行FlowDroid分析的命令行
  * @Author: MeanFan
  * @Create: 2020-05-17 19:24
  * @Version: 1.0
@@ -20,6 +20,12 @@ public class FlowDroidRuntime {
     private String outputFilePath = "D:\\APS\\output\\o.txt";
     private String logFilePath = "D:\\APS\\log\\latest.txt";
 
+    /**
+    * @Author: MeanFan
+    * @Description: 设置FLowDroid的运行环境参数
+    * @Param: [javaCmd, flowDroidCmdJarWorkDir, flowDroidCmdJarFilePath, androidSdkPlatformsDir, sourcesAndSinksFilePath, outputFilePath, logFilePath]
+    * @return: void
+    **/
     public void setEnv(String javaCmd, String flowDroidCmdJarWorkDir,
                          String flowDroidCmdJarFilePath,String androidSdkPlatformsDir,
                          String sourcesAndSinksFilePath,String outputFilePath,String logFilePath){
@@ -32,6 +38,12 @@ public class FlowDroidRuntime {
         this.logFilePath = logFilePath;
     }
 
+    /**
+    * @Author: MeanFan
+    * @Description: 运行FlowDroid命令行
+    * @Param: [apkFilePath]
+    * @return: boolean
+    **/
     public boolean exec(String apkFilePath) {
         this.apkFilePath = apkFilePath;
         String cmdStr = String.format("%s -jar %s -a \"%s\" -p \"%s\" -s \"%s\" -o \"%s\"",

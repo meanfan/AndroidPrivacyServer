@@ -23,16 +23,13 @@ import java.security.NoSuchAlgorithmException;
 
 public class Md5CalcUtil {
     private static final char[] hexCode = "0123456789ABCDEF".toCharArray();
-    // 文件类取MD5
-    public static String calcMD5(File file){
-        try (InputStream stream = Files.newInputStream(file.toPath(), StandardOpenOption.READ)) {
-            return calcMD5(stream);
-        }catch (IOException e) {
-            e.printStackTrace();
-            return "";
-        }
-    }
-    // 输入流取MD5
+
+    /**
+    * @Author: MeanFan
+    * @Description: 根据输入流获取MD5值
+    * @Param: [stream]
+    * @return: java.lang.String
+    **/
     public static String calcMD5(InputStream stream) {
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -51,6 +48,12 @@ public class Md5CalcUtil {
         }
     }
 
+    /**
+    * @Author: MeanFan
+    * @Description: 字节数组转String类
+    * @Param: [data]
+    * @return: java.lang.String
+    **/
     public static String toHexString(byte[] data) {
         StringBuilder r = new StringBuilder(data.length * 2);
         for (byte b : data) {

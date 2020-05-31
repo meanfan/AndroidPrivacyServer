@@ -21,7 +21,7 @@ import java.util.Date;
 /**
  * @ProjectName: AndroidPrivacyServer
  * @ClassName: UploadController
- * @Description:
+ * @Description: SpringBoot的 控制器，负责HTTP请求的接收和响应
  * @Author: MeanFan
  * @Create: 2020-04-04 21:16
  * @Version: 1.0
@@ -38,6 +38,13 @@ public class UploadController {
         return null;
     }
 
+
+    /**
+    * @Author: MeanFan
+    * @Description: 根据MD5返回已有的分析结果
+    * @Param: [Md5]
+    * @return: org.springframework.http.ResponseEntity<org.springframework.core.io.FileSystemResource>
+    **/
     @GetMapping("/result")
     public ResponseEntity<FileSystemResource> singleFileUpload(@RequestParam("apkMd5") String Md5) {
         File outputFile = new File(String.format("%s/%s.xml", flowDroidConfig.getOutputFileDir(), Md5));
@@ -50,6 +57,13 @@ public class UploadController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    /**
+    * @Author: MeanFan
+    * @Description: 根据路径获得文件报文体
+    * @Param: [outputPath]
+    * @return: org.springframework.http.ResponseEntity<org.springframework.core.io.FileSystemResource>
+    **/
 
     private ResponseEntity<FileSystemResource> getFileSystemResourceResponseEntity(Path outputPath) {
         HttpHeaders headers = new HttpHeaders();
@@ -65,6 +79,13 @@ public class UploadController {
                 .contentType(MediaType.parseMediaType("application/octet-stream"))
                 .body(new FileSystemResource(outputPath));
     }
+
+    /**
+    * @Author: MeanFan
+    * @Description: 根据上传的apk文件返回包含分析结果的响应报文
+    * @Param: [uploadApkFile]
+    * @return: org.springframework.http.ResponseEntity<org.springframework.core.io.FileSystemResource>
+    **/
 
     @PostMapping("/upload")
     public ResponseEntity<FileSystemResource> singleFileUpload(@RequestParam("uploadApkFile") MultipartFile uploadApkFile) {

@@ -1,7 +1,6 @@
 package com.mean.androidprivacy.server.demo.analysis;
 
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
@@ -10,7 +9,7 @@ import org.springframework.stereotype.Component;
 /**
  * @ProjectName: AndroidPrivacyServer
  * @ClassName: FlowDroidConfig
- * @Description:
+ * @Description: FlowDroid的配置项，通过@PropertySource注解从文件读入
  * @Author: MeanFan
  * @Create: 2020-05-17 20:11
  * @Version: 1.0

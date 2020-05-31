@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * @ProjectName: AndroidPrivacyServer
  * @ClassName: ProcessOutputThread
- * @Description:
+ * @Description: FlowDroid 运行时的异步输出线程类
  * @Author: MeanFan
  * @Create: 2020-05-24 11:23
  * @Version: 1.0
@@ -29,6 +29,13 @@ class ProcessOutputThread extends Thread
         this.is = is;
         this.os = os;
     }
+
+    /**
+    * @Author: MeanFan
+    * @Description: 重写Thread类的run()方法
+    * @Param: []
+    * @return: void
+    **/
 
     @Override
     public void run() {

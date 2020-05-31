@@ -8,6 +8,14 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
+/**
+ * @ProjectName: AndroidPrivacyServer
+ * @ClassName: AndroidPrivacyServerApplication
+ * @Description: SpringBoot 启动入口类
+ * @Author: MeanFan
+ * @Create: 2020-04-04 15:23
+ * @Version: 1.0
+ **/
 @SpringBootApplication
 @ComponentScan("com.mean.androidprivacy.server")
 public class AndroidPrivacyServerApplication {
